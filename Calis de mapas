@@ -1,6 +1,7 @@
-https://www.diegovalle.net/mxmaps/
-
-Sys.which("make")
+####Previo se necesita instalar Rtools  y theme_elegant.
+#### https://www.diegovalle.net/mxmaps/
+  
+  Sys.which("make")
 ## "C:\\rtools40\\usr\\bin\\make.exe"
 
 install.packages("jsonlite", type = "source")
@@ -29,19 +30,14 @@ library(ggthemes)
 library(extrafont)
 
 
-if (!require("devtools")) {
-  install.packages("devtools")
-}
-devtools::install_github("diegovalle/mxmaps")
 
-library("mxmaps")
-
-  df_mxstate$value <- df_mxstate$pop
-  mxstate_choropleth(df_mxstate,
-           title = "Total population, by state") 
+df_mxstate$value <- df_mxstate$pop
+mxstate_choropleth(df_mxstate,
+                   title = "Total population, by state") 
 
 ###########################################
-
+enoe <- read_dta("SDEMT120.dta")
+View(enoe)
 
 Entidades_baghee <- enoe %>%
   filter(tue2==6) %>%
@@ -52,8 +48,7 @@ write.csv(Entidades_baghee, "Entidades.csv")
 
 
 ##### Chart 1
-df <- fread("Entidades.csv") 
-
+df <- fread("eent.csv") 
 data("df_mxstate")
 
 df_map <- merge(df_mxstate, df, by.x = "state_name_official", by.y = "Estado", all.x = TRUE)
@@ -79,5 +74,5 @@ mxstate_choropleth(df_map, num_colors = 1) +
   theme_elegant()
 
 
-mxstate_choropleth(df_mxstate)       
-mxhexbin_choropleth(df_mxstate)
+
+
