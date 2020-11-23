@@ -1,19 +1,25 @@
-####Previo se necesita instalar Rtools  y theme_elegant.
-#### https://www.diegovalle.net/mxmaps/
-  
-  Sys.which("make")
-## "C:\\rtools40\\usr\\bin\\make.exe"
+#####1..Previo se necesita instalar Rtools.
+#####1.1. Para ello checar el link con la ppt: http://jtleek.com/modules/01_DataScientistToolbox/02_10_rtools/#5
 
-install.packages("jsonlite", type = "source")
-
-
-
-if (!require("devtools")) {
-  install.packages("devtools")
-}
-devtools::install_github("diegovalle/mxmaps")
-###########################################
-
+####2. Para la generación de mapas (coropletas), visualizar: https://www.diegovalle.net/mxmaps/
+####2.1. Lo siguiente es parte para la instalación y creación de mapas con MxMaps
+         Sys.which("make")
+         ## "C:\\rtools40\\usr\\bin\\make.exe" #La carpeta de origen
+      
+      install.packages("jsonlite", type = "source") #Instalación
+      if (!require("devtools")) {
+        install.packages("devtools")}
+      devtools::install_github("diegovalle/mxmaps")
+      
+              library("mxmaps")
+              df_mxstate$value <- df_mxstate$pop
+              mxstate_choropleth(df_mxstate,
+                                 title = "Total population, by state") 
+      
+      
+      
+      
+##### 3. Paqueterías que se necesitan
 library(data.table)
 library(ggplot2)
 library("mxmaps")
@@ -30,49 +36,107 @@ library(ggthemes)
 library(extrafont)
 
 
+####4. Base de datos, obtenidas del SECRETARIADO      
+delitos <- read_excel("CNSP-Delitos-2020_sep2020.xlsx")                     
 
-df_mxstate$value <- df_mxstate$pop
-mxstate_choropleth(df_mxstate,
-                   title = "Total population, by state") 
+delitos<-delitos%>% 
+  mutate(
+    Entidad = (Entidad),
+    Entidad = case_when(
+      Entidad=="Aguascalientes" ~ "Aguascalientes",
+      Entidad=="Baja California" ~ "Baja California",
+      Entidad=="Baja California Sur" ~ "Baja California Sur",
+      Entidad=="Campeche" ~ "Campeche",
+      Entidad=="Coahuila de Zaragoza" ~ "Coahuila",
+      Entidad=="Colima" ~ "Colima",
+      Entidad=="Chiapas" ~ "Chiapas",
+      Entidad=="Chihuahua" ~ "Chihuahua",
+      Entidad=="Ciudad de México" ~ "Ciudad de México",
+      Entidad=="Durango" ~ "Durango",
+      Entidad=="Guanajuato" ~ "Guanajuato",
+      Entidad=="Guerrero" ~ "Guerrero",
+      Entidad=="Hidalgo" ~ "Hidalgo",
+      Entidad=="Jalisco" ~ "Jalisco",
+      Entidad=="México" ~ "México",
+      Entidad=="Michoacán de Ocampo" ~ "Michoacán",
+      Entidad=="Morelos" ~ "Morelos",
+      Entidad=="Nayarit" ~ "Nayarit",
+      Entidad=="Nuevo León" ~ "Nuevo León",
+      Entidad=="Oaxaca" ~ "Oaxaca",
+      Entidad=="Puebla" ~ "Puebla",
+      Entidad=="Querétaro" ~ "Querétaro",
+      Entidad=="Quintana Roo" ~ "Quintana Roo",
+      Entidad=="San Luis Potosí" ~ "San Luis Potosí",
+      Entidad=="Sinaloa" ~ "Sinaloa",
+      Entidad=="Sonora" ~ "Sonora",
+      Entidad=="Tabasco" ~ "Tabasco",
+      Entidad=="Tamaulipas" ~ "Tamaulipas",
+      Entidad=="Tlaxcala" ~ "Tlaxcala",
+      Entidad=="Veracruz de Ignacio de la Llave" ~ "Veracruz",
+      Entidad=="Yucatán" ~ "Yucatán",
+      Entidad=="Zacatecas" ~ "Zacatecas"))
+      
 
-###########################################
-enoe <- read_dta("SDEMT120.dta")
-View(enoe)
 
-Entidades_baghee <- enoe %>%
-  filter(tue2==6) %>%
-  group_by(ent) %>%
-  summarise(TDHr=sum(wt=fac))
-data.frame(Entidades_baghee)
-write.csv(Entidades_baghee, "Entidades.csv")
-
-
-##### Chart 1
-df <- fread("eent.csv") 
-data("df_mxstate")
-
-df_map <- merge(df_mxstate, df, by.x = "state_name_official", by.y = "Estado", all.x = TRUE)
-setnames(df_map, old = "TDHr", new = "value") 
-
-mxhexbin_choropleth(df_map, num_colors = 1) +  
-  labs(title="Trabajadoras del hogar en México, 2020.", 
-       caption="Elaboración propia con base a la ENOE 2020, INEGI") +
-  scale_fill_gradient(
-    low = "lightpink",
-    high = "darkorchid1",
-    guide = "colourbar")+
-  theme_elegant()
+####4.1 Limpieza y ordenamiento de la base
+delitos<-delitos_2020 %>% 
+  group_by(Entidad, `Tipo de delito`) %>% 
+  filter(`Tipo de delito`=="Feminicidio") %>% 
+  summarise(ene=sum(Enero),
+            feb=sum(Febrero),
+            mar=sum(Marzo),
+            abr=sum(Abril),
+            may=sum(Mayo),
+            jun=sum(Junio),
+            jul=sum(Julio),
+            ago=sum(Agosto),
+            sep=sum(Septiembre),
+            tot_acu=sum(ene+feb+mar+abr+ 
+                        may+ jun + jul+ ago+sep))
 
 
-mxstate_choropleth(df_map, num_colors = 1) +
-  labs(title="Trabajadoras del hogar en México, 2020.", 
-       caption="Elaboración propia con base a la ENOE 2020, INEGI") +
-  scale_fill_gradient(
-    low = "lightpink",
-    high = "darkorchid1",
-    guide = "colourbar")+
-  theme_elegant()
+####5. Cargamos una segunda base, las estimaciones de poblacion 2020 de la CONAPO.
+poblacion_total <- read_excel("poblacion_total.xlsx", 
+                        range = "A1:C33", col_types = c("text", 
+                                                        "text", 
+                                                        "numeric"))            
 
+####5.1 De la base de la conapo hacemos la transformación de habitantes por cada 100 mil.          
+            poblacion_total %>%
+              select(veinte, Estado) %>%
+              group_by(Estado) %>%
+              summarise(Poblacion=(veinte))->poblacion
+            
+#####6. Creación de un "merge" nombrando "df" donde junto la base de 
+#       delitos del secretariado y la de conapo.
+      
+            
+df<-merge(poblacion, delitos, by.x="Estado", by.y="Entidad", all.x = TRUE)
+            
+    df %>% 
+      group_by(Estado) %>% 
+      summarise(tasa100=(tot_acu/Poblacion)*100000)->Tasas
+            
+    
+        df_mapa <- merge(df_mxstate, Tasas, by.x = "state_name", by.y = "Estado", all.x = TRUE)
+        df_mapa$value<-NULL
+            setnames(df_mapa, old = "tasa100", new="value") 
+            
+            mxhexbin_choropleth(df_mapa, num_colors = 1) +  
+              labs(title="Feminicidios por cada 100 mil habitantes, 2020", 
+                   caption="Elaboración propia con base al SESNSP, 2020.") +
+              scale_fill_gradient(
+                low = "snow2",
+                high = "mediumorchid3",
+                guide = "colourbar")+
+              theme_elegant()
+            
+write.csv(df_mapa, "df_mapa.csv")
+            
+            
+            
+            
+            
 
 
 
