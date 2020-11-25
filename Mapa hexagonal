@@ -1,0 +1,195 @@
+#PASO 1.
+###Descarga de cran "On Windows 64-bit: rtools40-x86_64.exe (recommended: includes both i386 and x64 compilers)" 
+https://cran.r-project.org/bin/windows/Rtools/
+
+#Paso 2. 
+###Seguir las instrucciones de la ppt del link: 
+http://jtleek.com/modules/01_DataScientistToolbox/02_10_rtools/#5
+
+
+#PASO 3. 
+###Para la generación de mapas (coropletas), visualizar: 
+https://www.diegovalle.net/mxmaps/
+
+         #Lo siguiente es parte para la instalación y creación de mapas con MxMaps
+         Sys.which("make")
+         ## "C:\\rtools40\\usr\\bin\\make.exe" #La carpeta de origen  ##Primeros dos link
+      
+      install.packages("jsonlite", type = "source") #Instalación
+      if (!require("devtools")) {
+        install.packages("devtools")}
+      devtools::install_github("diegovalle/mxmaps")
+      
+  #PASO 3.1
+      
+      #Empieza el calis del tercer link:
+              library("mxmaps", "plotly")
+              df_mxstate$value <- df_mxstate$pop
+              mxstate_choropleth(df_mxstate,
+                                 title = "Total population, by state") ->mapita2 #(Guardar con nombre "mapita 2")
+              ggplotly(mapita2) #Se vuelve el mapa en interactivo
+
+       #Siguiente calis con el mapa en hexagono.       
+              mxhexbin_choropleth(df_mxstate,
+                                  title = "Total population, by state")       
+      
+
+#
+#
+
+#PASO 4. 
+###Paqueterías que se necesitan
+library(data.table)
+library(ggplot2)
+library("mxmaps")
+library(lubridate)
+library(haven)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(DT)
+library(scales)
+library(ggthemes)
+library(extrafont)
+
+
+#PASO 5. 
+#Base de datos, obtenidas del SECRETARIADO (base 1)
+https://drive.google.com/u/0/uc?id=1oRs0rJgCD-og88N4RlsDXH8LVlP0wGeW&export=download
+
+delitos <- read_excel("CNSP-Delitos-2020_sep2020.xlsx")                     
+
+#PASO 6
+##Cambia los nombres de las entidades.
+delitos<-delitos%>% 
+  mutate(
+    Entidad = (Entidad),
+    Entidad = case_when(
+      Entidad=="Aguascalientes" ~ "Aguascalientes",
+      Entidad=="Baja California" ~ "Baja California",
+      Entidad=="Baja California Sur" ~ "Baja California Sur",
+      Entidad=="Campeche" ~ "Campeche",
+      Entidad=="Coahuila de Zaragoza" ~ "Coahuila",
+      Entidad=="Colima" ~ "Colima",
+      Entidad=="Chiapas" ~ "Chiapas",
+      Entidad=="Chihuahua" ~ "Chihuahua",
+      Entidad=="Ciudad de México" ~ "Ciudad de México",
+      Entidad=="Durango" ~ "Durango",
+      Entidad=="Guanajuato" ~ "Guanajuato",
+      Entidad=="Guerrero" ~ "Guerrero",
+      Entidad=="Hidalgo" ~ "Hidalgo",
+      Entidad=="Jalisco" ~ "Jalisco",
+      Entidad=="México" ~ "México",
+      Entidad=="Michoacán de Ocampo" ~ "Michoacán",
+      Entidad=="Morelos" ~ "Morelos",
+      Entidad=="Nayarit" ~ "Nayarit",
+      Entidad=="Nuevo León" ~ "Nuevo León",
+      Entidad=="Oaxaca" ~ "Oaxaca",
+      Entidad=="Puebla" ~ "Puebla",
+      Entidad=="Querétaro" ~ "Querétaro",
+      Entidad=="Quintana Roo" ~ "Quintana Roo",
+      Entidad=="San Luis Potosí" ~ "San Luis Potosí",
+      Entidad=="Sinaloa" ~ "Sinaloa",
+      Entidad=="Sonora" ~ "Sonora",
+      Entidad=="Tabasco" ~ "Tabasco",
+      Entidad=="Tamaulipas" ~ "Tamaulipas",
+      Entidad=="Tlaxcala" ~ "Tlaxcala",
+      Entidad=="Veracruz de Ignacio de la Llave" ~ "Veracruz",
+      Entidad=="Yucatán" ~ "Yucatán",
+      Entidad=="Zacatecas" ~ "Zacatecas"))
+      
+
+
+#PASO 6. 
+##Limpieza y ordenamiento de la base
+delitos<-delitos %>% 
+  group_by(Entidad, `Tipo de delito`) %>% 
+  filter(`Tipo de delito`=="Feminicidio", `Año`==2020) %>% 
+  summarise(ene=sum(Enero),
+            feb=sum(Febrero),
+            mar=sum(Marzo),
+            abr=sum(Abril),
+            may=sum(Mayo),
+            jun=sum(Junio),
+            jul=sum(Julio),
+            ago=sum(Agosto),
+            sep=sum(Septiembre),
+            tot_acu=sum(ene+feb+mar+abr+ 
+                        may+ jun + jul+ ago+sep))
+
+
+
+
+#PASO 7. 
+##Cargamos una segunda base, las estimaciones de poblacion 2020 de la CONAPO. (Base 2)
+##No encontré el link de la fuente pero añado la base ):
+
+poblacion_total <- read_excel("poblacion_total.xlsx", 
+                        range = "A1:C33", col_types = c("text", 
+                                                        "text", 
+                                                        "numeric"))            
+
+#PASO 8.         
+            poblacion<-poblacion_total %>%
+              select(veinte, Estado) %>%
+              group_by(Estado) %>%
+              summarise(Poblacion=(veinte))
+            
+#PASO 9. 
+##Creación de un "merge" nombrando "df" donde junto la base de delitos del secretariado y la de conapo.
+      
+df<-merge(poblacion, delitos, by.x="Estado", by.y="Entidad", all.x = TRUE) #"poblacion" y "delitos" son las bases para unir
+           
+    
+#PASO 10.
+#Del merge "df" se crea la nueva variable "tasa100" y se guarda todo en una nueva base llamada "Tasas"
+    
+    df %>% 
+      group_by(Estado) %>% 
+      summarise(tasa100=(tot_acu/Poblacion)*100000)->Tasas
+            
+    
+#PASO 11.
+##Se crea otro merge de Tasas (Paso 10) con la base del mapa de Diego Valle (df_mxstate).
+###df_mapa debe de ser la última base.
+
+    df_mapa <- merge(df_mxstate, Tasas, by.x = "state_name", by.y = "Estado", all.x = TRUE)
+        df_mapa$value<-NULL #Borramos la variable "value" porque en esta añadiremos las tasas de los 100 mil hab.
+            setnames(df_mapa, old = "tasa100", new="value") #La transformación de las tasas a "value".
+
+#PASO 12.
+##Mapa hexagonal
+
+            mxhexbin_choropleth(df_mapa, num_colors = 1) +  
+              labs(title="Feminicidios por cada 100 mil habitantes por entidad en México, 2020", 
+                   caption="
+                   Elaborado por R-Ladies GDL con base al SESNSP, 2020 (ENE-SEP) y Proyecciones de la población de CONAPO.",
+                   fill="Tasa") +
+              scale_fill_gradient(
+                low = "plum", 
+                high = "magenta4",
+                guide = "colourbar")+theme_elegant()+
+              theme(text=element_text(family="Roboto",
+                                     face="plain",
+                                     size=23,
+                                     hjust = 0.5,
+                                     vjust = 0.5),
+                    legend.text = element_text(size=10, colour = "grey12"),
+                    legend.title = element_text(color = "grey7", size = 13),
+                    plot.title = element_text(hjust=0.5, size=15, face="plain", colour="grey6"),
+                    plot.caption = element_text(hjust=-1, size=12, face="plain"),
+                    plot.margin = margin(1, 1, 1, 1, "cm"))->mapita
+            
+ggplotly(mapita)            
+write.csv(df_mapa, "df_mapa.csv")
+write.csv(df_mxstate, "df_mxstate.csv")
+write.csv(poblacion, "población_conapo20.csv")
+write.csv(delitos, "delitos.csv")
+write.csv(Tasas, "Tasas100mil.csv")
+
+
+
+
+###################################################
