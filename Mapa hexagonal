@@ -193,3 +193,29 @@ write.csv(Tasas, "Tasas100mil.csv")
 
 
 ###################################################
+
+
+
+
+# 
+# Municipal.Delitos.2015.2021_ene2021 %>% 
+#   group_by(Municipio, `Tipo.de.delito`) %>% 
+#   filter(`Tipo.de.delito`=="Feminicidio", `A.f1.o`==2020,
+#          Entidad=="Jalisco") %>% 
+#   summarise(ene=sum(Enero),
+#             feb=sum(Febrero),
+#             mar=sum(Marzo),
+#             abr=sum(Abril),
+#             may=sum(Mayo),
+#             jun=sum(Junio),
+#             jul=sum(Julio),
+#             ago=sum(Agosto),
+#             sep=sum(Septiembre),
+#             oct=sum(Octubre),
+#             nov=sum(Noviembre),
+#             dic=sum(Diciembre),
+#             tot_acu=sum(ene+feb+mar+abr+ 
+#                           may+ jun + jul+ ago+sep+
+#                           oct + nov +dic))->feminicidios
+# 
+# write.csv(feminicidios, "feminicidios.csv")
