@@ -1,4 +1,4 @@
-#PASO 1.
+#PASO 1. 
 ###Descarga de cran "On Windows 64-bit: rtools40-x86_64.exe (recommended: includes both i386 and x64 compilers)" 
 https://cran.r-project.org/bin/windows/Rtools/
 
@@ -20,7 +20,7 @@ https://www.diegovalle.net/mxmaps/
         install.packages("devtools")}
       devtools::install_github("diegovalle/mxmaps")
       
-  #PASO 3.1
+  #PASO 3.1 
       
       #Empieza el calis del tercer link:
               library("mxmaps", "plotly")
